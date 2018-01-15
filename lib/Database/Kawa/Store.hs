@@ -2,10 +2,14 @@ module Database.Kawa.Store
   ( Store(..)
   , Key(..)
   , Value(..)
+  , emptyStore
   , set
   , get
   , toText
   , fromText
+  , readStore
+  , readStore'
+  , writeStore
   ) where
 
 import           Prelude hiding (takeWhile)
@@ -22,14 +26,19 @@ import           Data.Hashable (Hashable)
 import           Data.List (intersperse)
 import           Data.Monoid ((<>))
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TLB
+import qualified Data.Text.Lazy.IO as TL
 
 newtype Key   = Key   { fromKey   :: T.Text } deriving (Eq, Show, Hashable)
 newtype Value = Value { fromValue :: T.Text } deriving (Eq, Show)
 
 newtype Store = Store { unStore :: (HM.HashMap Key Value) } deriving (Eq, Show)
+
+emptyStore :: Store
+emptyStore = Store HM.empty
 
 set :: Store -> Key -> Value -> Store
 set (Store m) k v = Store $ HM.insert k v m
@@ -39,7 +48,7 @@ get (Store m) k = HM.lookup k m
 
 toText :: Store -> TL.Text
 toText =
-    TLB.toLazyText . mconcat . intersperse (TLB.singleton '\n')
+    TLB.toLazyText . (<> "\n") . mconcat . intersperse (TLB.singleton '\n')
     . map formatPair . HM.toList . unStore
 
   where
@@ -58,8 +67,17 @@ fromText = eitherResult . parse parser
     parser :: Parser Store
     parser = do
       pairs <- pairParser `sepBy` some endOfLine
+      _ <- some endOfLine
       endOfInput
+      checkDuplicates $ map (fromKey . fst) pairs
       return $ Store $ HM.fromList pairs
+
+    checkDuplicates :: [T.Text] -> Parser ()
+    checkDuplicates =
+      void . foldM (\seen x -> if HS.member x seen
+                                 then fail $ "duplicate key: " ++ show x
+                                 else return (HS.insert x seen))
+                   HS.empty
 
     pairParser :: Parser (Key, Value)
     pairParser = do
@@ -103,3 +121,16 @@ fromText = eitherResult . parse parser
 
 isAuthorizedChar :: Char -> Bool
 isAuthorizedChar c = isAlphaNum c || c == '-' || c == '_'
+
+readStore :: FilePath -> IO (Either String Store)
+readStore = fmap fromText . TL.readFile
+
+readStore' :: FilePath -> IO Store
+readStore' path = do
+  eRes <- readStore path
+  case eRes of
+    Left err -> error $ "can't read store at " ++ path ++ ": " ++ err
+    Right store -> return store
+
+writeStore :: FilePath -> Store -> IO ()
+writeStore path store = TL.writeFile path $ toText store

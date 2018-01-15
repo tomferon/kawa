@@ -4,8 +4,9 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, attoparsec, base, hashable, hedgehog, stdenv
-      , text, unordered-containers
+  f = { mkDerivation, attoparsec, base, directory, hashable
+      , hedgehog, optparse-applicative, stdenv, text
+      , unordered-containers
       }:
       mkDerivation {
         pname = "kawa";
@@ -16,7 +17,9 @@ let
         libraryHaskellDepends = [
           attoparsec base hashable text unordered-containers
         ];
-        executableHaskellDepends = [ base text unordered-containers ];
+        executableHaskellDepends = [
+          base directory optparse-applicative text unordered-containers
+        ];
         testHaskellDepends = [ base hedgehog text unordered-containers ];
         license = stdenv.lib.licenses.bsd3;
       };

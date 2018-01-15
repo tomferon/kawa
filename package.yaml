@@ -4,6 +4,7 @@ license:      BSD3
 license-file: LICENSE
 author:       Thomas Feron
 maintainer:   thomas.feron@redspline.com
+github:       thoferon/kawa
 
 ghc-options:
   - -Wall
@@ -29,7 +30,9 @@ executables:
     source-dirs: src
     main: Main.hs
     dependencies:
+      - directory
       - kawa
+      - optparse-applicative
 
 tests:
   unit-tests:
