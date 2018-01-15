@@ -1,0 +1,41 @@
+name:         kawa
+version:      0.1.0.0
+license:      BSD3
+license-file: LICENSE
+author:       Thomas Feron
+maintainer:   thomas.feron@redspline.com
+
+ghc-options:
+  - -Wall
+
+default-extensions:
+  - GeneralizedNewtypeDeriving
+  - OverloadedStrings
+  - TemplateHaskell
+
+dependencies:
+  - base >=4.9
+  - text
+  - unordered-containers
+
+library:
+  source-dirs: lib
+  dependencies:
+    - attoparsec
+    - hashable
+
+executables:
+  kawa:
+    source-dirs: src
+    main: Main.hs
+    dependencies:
+      - kawa
+
+tests:
+  unit-tests:
+    source-dirs: tests
+    main: Suite.hs
+    ghc-options: -threaded
+    dependencies:
+      - kawa
+      - hedgehog
