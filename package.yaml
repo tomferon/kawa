@@ -1,10 +1,17 @@
 name:         kawa
 version:      0.1.0.0
+synopsis:     Key-value store in single files.
+description:  Simple command-line tool to manage some key-value store in a single file.
+category:     Database
 license:      BSD3
 license-file: LICENSE
 author:       Thomas Feron
 maintainer:   thomas.feron@redspline.com
 github:       thoferon/kawa
+
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
 
 ghc-options:
   - -Wall
@@ -15,7 +22,7 @@ default-extensions:
   - TemplateHaskell
 
 dependencies:
-  - base >=4.9
+  - base >=4.9 && <5
   - text
   - unordered-containers
 
